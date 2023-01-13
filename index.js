@@ -20,14 +20,28 @@ const client = new MongoClient(uri, {
 const run = async () => {
   const todosCollection = client.db('mern-todo').collection('todos');
 
+  app.post('/todos', async (req, res) => {
+    const todo = req.body;
+    const result = await todosCollection.insertOne(todo);
+    res.send(result);
+  });
+
   app.get('/todos', async (req, res) => {
     const todos = await todosCollection.find({}).toArray();
     res.send(todos);
   });
 
-  app.post('/todos', async (req, res) => {
+  app.put('/todos/:id', async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: ObjectId(id) };
     const todo = req.body;
-    const result = await todosCollection.insertOne(todo);
+    const option = { upsert: true };
+    const updatedTodo = {
+      $set: {
+        todoName: todo.todoName,
+      },
+    };
+    const result = await todosCollection.updateOne(filter, updatedTodo, option);
     res.send(result);
   });
 
